@@ -1,0 +1,19 @@
+sudo: required
+services: 
+  - docker
+before_install:
+  - docker build -t gvmori/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run gvmori/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t gvmori/fib-client -f ./client/Dockerfile ./client
+  - docker build -t gvmori/fib-nginx -f ./nginx/Dockerfile ./nginx
+  - docker build -t gvmori/fib-server -f ./server/Dockerfile ./server
+  - docker build -t gvmori/fib-worker -f ./worker/Dockerfile ./worker
+  - echo "$DOCKER_PW" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push gvmori/fib-client
+  - docker push gvmori/fib-nginx
+  - docker push gvmori/fib-server
+  - docker push gvmori/fib-worker
